@@ -33,10 +33,17 @@ class Quadlet extends Shape {
     } else if (this.frame < this.endFrame) {
       //vertical decreasing
       this.vMargin -= 2 * this.range * delta;
-    } else if (this.frame > this.endFrame) this.frame = 0;
+    } else if (this.frame > this.endFrame) {
+      this.frame = 0;
+      this.vMargin = this.range;
+      this.hMargin = this.range;
+    }
 
     this.draw();
     this.frame++;
+    if (this.frame % 239 === 0) {
+      // console.log("h", this.hMargin, "v", this.vMargin);
+    }
   };
 }
 

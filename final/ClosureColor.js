@@ -1,16 +1,14 @@
-const calcAngleToOrigin = point => {
-  return atan(point[1] / point[0]);
-};
-
 class Triangle extends Shape {
-  constructor(x, y, radius, height = radius) {
+  constructor(x, y, radius, height = radius, color) {
     super(x, y);
     this.radius = radius;
     this.frame = 0;
     this.height = height;
+    this.color = color;
   }
 
   draw() {
+    fill(this.color);
     let point1 = [this.x + -0.866 * this.radius, this.y + -0.5 * this.radius];
     let point2 = [this.x + 0.866 * this.radius, this.y + -0.5 * this.radius];
     let point3 = [this.x, this.y + this.height];
@@ -40,17 +38,17 @@ class Triangle extends Shape {
   }
 }
 let t = [new Triangle(0, 0, 1, 50), new Triangle(0, 0, 1, 50), new Triangle(0, 0, 1, 50)];
-const closure = (centerX, centerY) => {
+const closure = (centerX, centerY, maxDist) => {
   noStroke();
   translate(centerX, centerY);
   triCircle(100, 16, centerX, centerY);
-  animatedTriCircle();
+  animatedTriCircle({ maxDist });
   //   triangle(centerX - 10, centerY - 10, centerX, centerY + 10, centerX + 10, centerY - 10);
   //   t.draw();
   //   t.forEach(tri => tri.rotate());
 };
 
-const animatedTriCircle = (radius = 150, minHeight = -25, width = 40) => {
+const animatedTriCircle = ({ radius = 150, minHeight = -25, width = 40, maxDist = 100 }) => {
   let numFrames = 800;
   let currFrame = frameCount % numFrames;
   getHeight();
@@ -58,24 +56,33 @@ const animatedTriCircle = (radius = 150, minHeight = -25, width = 40) => {
   push();
   let angle = (TWO_PI * currFrame) / numFrames;
   rotate(angle);
-  let height = getHeight(angle, minHeight, radius);
+  let height = getHeight(angle, minHeight, radius, maxDist);
   let stdWidth = height < width ? height : width;
   triCircle(radius, 16, stdWidth, height);
   pop();
 };
 
-const getHeight = (angle, min, max) => {
+const getHeight = (angle, min, max, maxDist) => {
+  let mouse = { x: mouseX, y: mouseY };
+  if (mouse.x > 0 && mouse.x < width && mouse.y > 0 && mouse.y < height) {
+    let distance = sqrt((200 - mouse.x) * (200 - mouse.x) + (200 - mouse.y) * (200 - mouse.y));
+
+    let res = maxDist - max / 2 - 10 - distance;
+    if (res < min) res = min;
+    if (res > max) res = max;
+    return res;
+  }
   let dist = (max - min) / 2;
   let mean = min + dist;
-
   return cos(angle) * dist + mean;
 };
+const triColors = ["#71898E", "#778794", "#75948D"];
 
-const triCircle = (radius = 100, numTris = 3, triWidth, triHeight) => {
+const triCircle = (radius = 100, numTris = 3, triWidth, triHeight, maxDist) => {
   //   fill(0);
   let tris = [];
   for (let i = 0; i < numTris; i++) {
-    tris[i] = new Triangle(0, -radius, triWidth, triHeight);
+    tris[i] = new Triangle(0, -radius, triWidth, triHeight, triColors[i % triColors.length]);
   }
   tris.forEach((t, i) => {
     // fill((255 / numTris) * i);
@@ -87,13 +94,11 @@ const triCircle = (radius = 100, numTris = 3, triWidth, triHeight) => {
   });
 };
 
-//assumes circle at 0,0
-const calcPointsAroundCircle = (radius, numPoints) => {
-  let points = [];
-  for (let i = 0; i < numPoints; i++) {
-    points[i] = [];
-    points[i][0] = radius * cos((i * 2 * PI) / numPoints - PI / 2);
-    points[i][1] = radius * sin((i * PI * 2) / numPoints - PI / 2);
-  }
-  return points;
-};
+// function setup() {
+//   createCanvas(400, 400);
+//   background(0);
+// }
+
+// function draw() {
+//   closure(width / 2, height / 2);
+// }
